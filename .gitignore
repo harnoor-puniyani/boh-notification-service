@@ -1,0 +1,30 @@
+# Binaries and build output
+# These are the compiled programs.
+# They should be rebuilt from source, not stored in git.
+bin/
+build/
+*.exe
+*.test
+
+# Go Modules
+# The 'vendor' directory contains all dependencies.
+# The 'go.mod' and 'go.sum' files are all you need to check in.
+vendor/
+
+# Go test/coverage reports
+# These are temporary files generated when running tests.
+*.out
+*.prof
+
+# Environment files
+# NEVER commit secret keys or local configuration!
+.env
+.env.*
+!*.env.example
+
+# IDE & OS files
+# These are local configuration files for your editor or OS.
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
