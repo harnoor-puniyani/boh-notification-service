@@ -65,6 +65,7 @@ func main()  {
 		}
 
 		msg := messages[0]
+		processor.processM
 		log.Printf("Received message ID: %s\n", msg.MessageID)
 		log.Printf("Message body: %s\n", string(msg.Body))
 

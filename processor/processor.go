@@ -26,4 +26,5 @@ func ProcessMessage(ctx context.Context, messageBody []byte) error {
 
 	log.Printf("Fetched the contact details for the UserID %s",event.UserID)
 
+	return err
 }
