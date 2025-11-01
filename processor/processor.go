@@ -3,6 +3,7 @@ package processor
 import (
 	"bytes"
 	"context"
+
 	// We no longer need: crypto/hmac, crypto/sha256, encoding/base64, net/url, time
 	"encoding/json"
 	"fmt"
@@ -10,7 +11,6 @@ import (
 	"net/http" // Used for Meta
 	"net/smtp" // <-- ADDED: For sending email via SMTP
 	"os"
-	"strings"
 )
 
 // --- Structs to match the JSON message contract ---
