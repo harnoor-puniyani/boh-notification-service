@@ -138,6 +138,7 @@ func sendEmailViaSMTP(ctx context.Context, toEmail, subject, body string) error 
 	if err != nil {
 		return fmt.Errorf("SMTP SendMail failed: %w", err)
 	}
+	
 
 	log.Printf("Successfully sent EMAIL to %s\n", toEmail)
 	return nil

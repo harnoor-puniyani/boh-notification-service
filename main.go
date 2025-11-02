@@ -1,25 +1,26 @@
 package main
 
 import (
+	"boh/notification-service/notifier"
 	"context"
 	"fmt"
 	"log"
 	"os"
 	"time"
+
 	"github.com/Azure/azure-sdk-for-go/sdk/messaging/azservicebus"
 	"github.com/joho/godotenv"
-	"processor"
 )
 
-type TransactionCompletedEvent struct{
-	UserID string `json:"userId"`
-	TransactionID int64 `json: "transactionId"`
-	TransactionType string `json: "transactionType"`
-	Amount float64 `json: "amount"`
-	Timestamp string `json: "timestamp"`
+type TransactionCompletedEvent struct {
+	UserID          string  `json:"userId"`
+	TransactionID   int64   `json: "transactionId"`
+	TransactionType string  `json: "transactionType"`
+	Amount          float64 `json: "amount"`
+	Timestamp       string  `json: "timestamp"`
 }
 
-func main()  {
+func main() {
 	err := godotenv.Load()
 	if err != nil {
 		log.Printf(" Could not load .env file")
@@ -31,19 +32,19 @@ func main()  {
 		log.Fatal("service bus env variables must be set")
 	}
 
-	client, err := azservicebus.NewClientFromConnectionString(connectionstring,nil)
+	client, err := azservicebus.NewClientFromConnectionString(connectionstring, nil)
 
 	if err != nil {
-		log.Fatal("Failed to create service bus client %v",err)
+		log.Fatal("Failed to create service bus client %v", err)
 	}
 
 	defer client.Close(context.Background())
 
-	receiver, err := client.NewReceiverForQueue(queueName,&azservicebus.ReceiverOptions{
+	receiver, err := client.NewReceiverForQueue(queueName, &azservicebus.ReceiverOptions{
 		ReceiveMode: azservicebus.ReceiveModePeekLock})
 
 	if err != nil {
-		log.Fatalf("Failed to create receiver for queue %s:%v",queueName,nil)
+		log.Fatalf("Failed to create receiver for queue %s:%v", queueName, nil)
 	}
 
 	defer receiver.Close(context.Background())
@@ -52,7 +53,7 @@ func main()  {
 
 	for {
 		ctx, cancel := context.WithTimeout(context.Background(), 60*time.Second)
-		messages,err := receiver.ReceiveMessages(ctx,1,nil)
+		messages, err := receiver.ReceiveMessages(ctx, 1, nil)
 		cancel()
 
 		if err != nil {
@@ -66,19 +67,22 @@ func main()  {
 		}
 
 		msg := messages[0]
-		processor.processM
+
 		log.Printf("Received message ID: %s\n", msg.MessageID)
 		log.Printf("Message body: %s\n", string(msg.Body))
 
-		err = receiver.CompleteMessage(context.Background(),msg,nil)
+		err = notifier.MessageUnmarshal([]byte(msg.Body))
 
-		if err!=nil{
+		if err != nil {
+			log.Fatal("error occured %v", err)
+		}
+
+		err = receiver.CompleteMessage(context.Background(), msg, nil)
+
+		if err != nil {
 			log.Printf("Error completing message %s: %v\n", msg.MessageID, err)
 		} else {
 			log.Printf("Message %s completed successfully.\n", msg.MessageID)
 		}
 	}
-
-
-
 }
