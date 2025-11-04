@@ -10,3 +10,12 @@ type NotificationEvent struct {
 	NotificationMessage string                `json:"notificationMessage"`
 	Channels            []NotificationChannel `json:"channels"`
 }
+
+type OauthTokenResponse struct {
+	accessToken string `json:"access_token"`
+	expiresIn string `json:"expires_in"`
+}
+
+type OauthTokenRequest struct {
+	
+}
