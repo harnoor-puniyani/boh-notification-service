@@ -12,10 +12,13 @@ type NotificationEvent struct {
 }
 
 type OauthTokenResponse struct {
-	accessToken string `json:"access_token"`
-	expiresIn string `json:"expires_in"`
+	AccessToken string `json:"access_token"`
+	ExpiresIn   int    `json:"expires_in"`
 }
 
-type OauthTokenRequest struct {
-	
+type AcsMessage struct {
+	ChannelRegistrationId string   `json:"channelRegistrationId"`
+	To                    []string `json:"to"`
+	Kind                  string   `"json:"kind"`
+	Content               string   `json:"content"`
 }
