@@ -1,0 +1,27 @@
+trigger:
+  batch: true
+  branches:
+    include:
+      - master
+
+resources:
+  repositories:
+    - repository: templates
+      type: git
+      name: azure-cicd-templates
+      ref: refs/heads/main
+
+pool:
+  vmImage: ubuntu-latest
+
+jobs:
+  - job: dockerBuild
+    displayName: docker image build
+    steps:
+      - template: docker-build-and-push.yaml@templates
+        parameters:
+          imageName: harnoorpuniyani/boh-notification-service
+          imageTag: v0
+          directory: .
+          dockerRegistry: docker-harnoorpuniyani
+      
