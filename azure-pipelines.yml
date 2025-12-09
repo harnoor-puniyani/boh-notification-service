@@ -29,8 +29,12 @@ jobs:
           organization: $(sonarqube-cloud-organisation-key)
           scannerMode: cli
           projectKey: arzom-test_boh
+          configMode: manual
           projectName: boh
           SonarQube: sonar qube cloud service connection
+          extraProperties: |
+            sonar.projectKey=arzom-test_boh
+            sonar.organization=arzom-test
 
       - task: SonarCloudAnalyze@3
         inputs:
