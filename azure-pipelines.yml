@@ -32,10 +32,9 @@ jobs:
           aquasec/trivy image \
           --format sarif \
           --output /output/report.sarif \
-            vulnerables/web-dvwa:latest
+          harnoorpuniyani/boh-notification-service:v0
         displayName: 'Run Trivy Security Scan'
         continueOnError: true
-#harnoorpuniyani/boh-notification-service:v0
       - task: PublishTestResults@2
         enabled: false
         inputs:
