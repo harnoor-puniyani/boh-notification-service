@@ -1,3 +1,4 @@
+name: 1.0.$(Date:yyyyMMdd).$(rev:r)
 trigger:
   batch: true
   branches:
@@ -32,10 +33,10 @@ jobs:
           --format template --template "@contrib/junit.tpl" \
           --output /output/junit.xml \
           --severity HIGH,CRITICAL \
-          harnoorpuniyani/boh-notification-service:v0
+            vulnerables/web-dvwa:latest
         displayName: 'Run Trivy Security Scan'
         continueOnError: true
-
+#harnoorpuniyani/boh-notification-service:v0
       - task: PublishTestResults@2
         inputs:
           testResultsFormat: 'JUnit'
