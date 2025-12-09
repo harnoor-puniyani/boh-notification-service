@@ -30,7 +30,7 @@ jobs:
           -v /var/run/docker.sock:/var/run/docker.sock \
           -v $(System.DefaultWorkingDirectory):/output \
           aquasec/trivy image \
-          --format sarif
+          --format sarif \
           --output /output/report.sarif \
             vulnerables/web-dvwa:latest
         displayName: 'Run Trivy Security Scan'
