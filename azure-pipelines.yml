@@ -36,11 +36,20 @@ jobs:
         displayName: 'Run Trivy Security Scan'
         continueOnError: true
 #harnoorpuniyani/boh-notification-service:v0
-      # - task: PublishTestResults@2
-      #   inputs:
-      #     testResultsFormat: 'JUnit'
-      #     testResultsFiles: '$(System.DefaultWorkingDirectory)/**/*.xml'
-      #     mergeTestResults: true
+      - task: PublishTestResults@2
+        enabled: false
+        inputs:
+          testResultsFormat: 'JUnit'
+          testResultsFiles: '$(System.DefaultWorkingDirectory)/**/*.xml'
+          mergeTestResults: true
+
+      - task: PublishBuildArtifacts@1
+        displayName: publish image scanning results
+        enabled: true
+        inputs:
+          ArtifactName: CodeAnalysisLogs 
+          publishLocation: Container
+          PathtoPublish: $(System.DefaultWorkingDirectory)/report.sarif
 
       - script: |
           docker save harnoorpuniyani/boh-notification-service:v0 > boh-notification-service-$(Build.BuildNumber).tar
