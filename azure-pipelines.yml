@@ -30,18 +30,17 @@ jobs:
           -v /var/run/docker.sock:/var/run/docker.sock \
           -v $(System.DefaultWorkingDirectory):/output \
           aquasec/trivy image \
-          --format template --template "@contrib/junit.tpl" \
-          --output /output/junit.xml \
-          --severity HIGH,CRITICAL \
+          --format sarif
+          --output /output/report.sarif \
             vulnerables/web-dvwa:latest
         displayName: 'Run Trivy Security Scan'
         continueOnError: true
 #harnoorpuniyani/boh-notification-service:v0
-      - task: PublishTestResults@2
-        inputs:
-          testResultsFormat: 'JUnit'
-          testResultsFiles: '$(System.DefaultWorkingDirectory)/**/*.xml'
-          mergeTestResults: true
+      # - task: PublishTestResults@2
+      #   inputs:
+      #     testResultsFormat: 'JUnit'
+      #     testResultsFiles: '$(System.DefaultWorkingDirectory)/**/*.xml'
+      #     mergeTestResults: true
 
       - script: |
           docker save harnoorpuniyani/boh-notification-service:v0 > boh-notification-service-$(Build.BuildNumber).tar
