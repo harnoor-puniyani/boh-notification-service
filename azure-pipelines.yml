@@ -31,6 +31,7 @@ jobs:
           projectKey: arzom-test_boh
           configMode: manual
           projectName: boh
+          cliProjectKey: arzom-test_boh
           SonarQube: sonar qube cloud service connection
           extraProperties: |
             sonar.projectKey=arzom-test_boh
