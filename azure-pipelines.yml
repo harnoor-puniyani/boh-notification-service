@@ -44,10 +44,36 @@ jobs:
       - task: SonarCloudPublish@3
         inputs:
           pollingTimeoutSec: '300'
+  
+  - job: repoScan
+    displayName: repositoryScan
+    dependsOn: staticCodeAnalysis
+    steps:
+      - checkout: self
+        fetchDepth: 0
+
+      - script: |
+          docker run --rm \
+          -v $(System.DefaultWorkingDirectory):/src
+          aquasec/trivy repo /src \
+          --scanners misconfig,license \
+          --format sarif \
+          --output /src/report.sarif
+        displayName: repository scan
+        enabled: true
+      
+      - task: PublishBuildArtifacts@1
+        displayName: Publish Repository scan
+        enabled: true
+        inputs:
+          ArtifactName: CodeAnalysisLogs
+          publishLocation: Container
+          PathtoPublish: $(System.DefaultWorkingDirectory)/report.sarif
+
 
   - job: dockerBuild
     displayName: docker image build
-    dependsOn: staticCodeAnalysis
+    dependsOn: repoScan
     steps:
       - template: docker-build-and-push.yaml@templates
         parameters:
