@@ -54,9 +54,9 @@ jobs:
 
       - script: |
           docker run --rm \
-          -v $(System.DefaultWorkingDirectory):/src
+          -v $(System.DefaultWorkingDirectory):/src \
           aquasec/trivy repo /src \
-          --scanners misconfig,license \
+          --scanners vuln,secret,misconfig,license \
           --format sarif \
           --output /src/report.sarif
         displayName: repository scan
