@@ -15,103 +15,114 @@ resources:
 
 pool:
   vmImage: ubuntu-latest
+stages:
+  - stage: Scaning
+    jobs:
+      - job: UnitTest
+        steps:
+        - task: GoTool@0
+          inputs:
+            version: '1.23'
+        - task: Go@0
+          inputs:
+            command: 'test'
+            arguments: '-vet=off -cover'
+        
+      - job: staticCodeAnalysis
+        displayName: Static code Analysis
+        steps:
+          - checkout: self
+            fetchDepth: 0
 
-jobs:
-  - job: staticCodeAnalysis
-    displayName: Static code Analysis
-    steps:
-      - checkout: self
-        fetchDepth: 0
+          - task: SonarCloudPrepare@3
+            enabled: true
+            inputs:
+              organization: $(sonarqube-cloud-organisation-key)
+              scannerMode: cli
+              projectKey: arzom-test_boh
+              configMode: manual
+              projectName: boh
+              cliProjectKey: arzom-test_boh
+              SonarQube: sonar qube cloud service connection
+              extraProperties: |
+                sonar.projectKey=arzom-test_boh
+                sonar.organization=arzom-test
 
-      - task: SonarCloudPrepare@3
-        enabled: true
-        inputs:
-          organization: $(sonarqube-cloud-organisation-key)
-          scannerMode: cli
-          projectKey: arzom-test_boh
-          configMode: manual
-          projectName: boh
-          cliProjectKey: arzom-test_boh
-          SonarQube: sonar qube cloud service connection
-          extraProperties: |
-            sonar.projectKey=arzom-test_boh
-            sonar.organization=arzom-test
-
-      - task: SonarCloudAnalyze@3
-        inputs:
-          jdkversion: 'JAVA_HOME_21_X64'
-    
-      - task: SonarCloudPublish@3
-        inputs:
-          pollingTimeoutSec: '300'
-  
-  - job: repoScan
-    displayName: repositoryScan
-    dependsOn: staticCodeAnalysis
-    steps:
-      - checkout: self
-        fetchDepth: 0
-
-      - script: |
-          docker run --rm \
-          -v $(System.DefaultWorkingDirectory):/src \
-          aquasec/trivy repo /src \
-          --scanners vuln,secret,misconfig,license \
-          --format sarif \
-          --output /src/report.sarif
-        displayName: repository scan
-        enabled: true
+          - task: SonarCloudAnalyze@3
+            inputs:
+              jdkversion: 'JAVA_HOME_21_X64'
+        
+          - task: SonarCloudPublish@3
+            inputs:
+              pollingTimeoutSec: '300'
       
-      - task: PublishBuildArtifacts@1
-        displayName: Publish Repository scan
-        enabled: true
-        inputs:
-          ArtifactName: CodeAnalysisLogs
-          publishLocation: Container
-          PathtoPublish: $(System.DefaultWorkingDirectory)/report.sarif
+      - job: repoScan
+        displayName: repositoryScan
+        dependsOn: staticCodeAnalysis
+        steps:
+          - checkout: self
+            fetchDepth: 0
+
+          - script: |
+              docker run --rm \
+              -v $(System.DefaultWorkingDirectory):/src \
+              aquasec/trivy repo /src \
+              --scanners vuln,secret,misconfig,license \
+              --format sarif \
+              --output /src/report.sarif
+            displayName: repository scan
+            enabled: true
+          
+          - task: PublishBuildArtifacts@1
+            displayName: Publish Repository scan
+            enabled: true
+            inputs:
+              ArtifactName: CodeAnalysisLogs
+              publishLocation: Container
+              PathtoPublish: $(System.DefaultWorkingDirectory)/report.sarif
 
 
-  - job: dockerBuild
-    displayName: docker image build
-    dependsOn: repoScan
-    steps:
-      - template: docker-build-and-push.yaml@templates
-        parameters:
-          imageName: harnoorpuniyani/boh-notification-service
-          imageTag: v0
-          directory: .
-          dockerRegistry: docker-harnoorpuniyani
-      
-      #image scaning
-      - script: |
-          docker run --rm \
-          -v /var/run/docker.sock:/var/run/docker.sock \
-          -v $(System.DefaultWorkingDirectory):/output \
-          aquasec/trivy image \
-          --format sarif \
-          --output /output/report.sarif \
-          harnoorpuniyani/boh-notification-service:v0
-        displayName: 'Run Trivy Security Scan'
-        continueOnError: true
-      - task: PublishTestResults@2
-        enabled: false
-        inputs:
-          testResultsFormat: 'JUnit'
-          testResultsFiles: '$(System.DefaultWorkingDirectory)/**/*.xml'
-          mergeTestResults: true
+      - job: dockerBuild
+        displayName: docker image build
+        dependsOn: repoScan
+        steps:
+          - template: docker-build-and-push.yaml@templates
+            parameters:
+              imageName: harnoorpuniyani/boh-notification-service
+              imageTag: v0
+              directory: .
+              dockerRegistry: docker-harnoorpuniyani
+          
+          #image scaning
+          - script: |
+              docker run --rm \
+              -v /var/run/docker.sock:/var/run/docker.sock \
+              -v $(System.DefaultWorkingDirectory):/output \
+              aquasec/trivy image \
+              --format sarif \
+              --output /output/report.sarif \
+              harnoorpuniyani/boh-notification-service:v0
+            displayName: 'Run Trivy Security Scan'
+            continueOnError: true
+          - task: PublishTestResults@2
+            enabled: false
+            inputs:
+              testResultsFormat: 'JUnit'
+              testResultsFiles: '$(System.DefaultWorkingDirectory)/**/*.xml'
+              mergeTestResults: true
 
-      - task: PublishBuildArtifacts@1
-        displayName: publish image scanning results
-        enabled: true
-        inputs:
-          ArtifactName: CodeAnalysisLogs 
-          publishLocation: Container
-          PathtoPublish: $(System.DefaultWorkingDirectory)/report.sarif
+          - task: PublishBuildArtifacts@1
+            displayName: publish image scanning results
+            enabled: true
+            inputs:
+              ArtifactName: CodeAnalysisLogs 
+              publishLocation: Container
+              PathtoPublish: $(System.DefaultWorkingDirectory)/report.sarif
 
-      - script: |
-          docker save harnoorpuniyani/boh-notification-service:v0 > boh-notification-service-$(Build.BuildNumber).tar
-      
-      - task: PublishBuildArtifacts@1
-        inputs:
-          ArtifactName: boh-notification-service
-          PathtoPublish: boh-notification-service-$(Build.BuildNumber).tar
+          - script: |
+              docker save harnoorpuniyani/boh-notification-service:v0 > boh-notification-service-$(Build.BuildNumber).tar
+          
+          - task: PublishBuildArtifacts@1
+            inputs:
+              ArtifactName: boh-notification-service
+              PathtoPublish: boh-notification-service-$(Build.BuildNumber).tar
