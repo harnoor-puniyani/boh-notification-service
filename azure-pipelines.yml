@@ -26,8 +26,8 @@ stages:
         - task: Go@0
           inputs:
             command: 'test'
-            arguments: '-vet=off -cover'
-        
+            arguments: '-vet=off'
+            
       - job: staticCodeAnalysis
         displayName: Static code Analysis
         steps:
