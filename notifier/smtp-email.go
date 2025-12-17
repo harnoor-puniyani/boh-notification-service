@@ -57,12 +57,12 @@ func MessageUnmarshal(messageBody []byte) error {
 	var event NotificationEvent
 	err := json.Unmarshal(messageBody, &event)
 	if err != nil {
-		log.Print("Error unmarhalling message : %v", err)
+		log.Printf("Error unmarshalling message: %v", err)
 		return err
 	}
 	err = ProcessMessage(event)
 	if err != nil {
-		log.Print("Error  message : %v", err)
+		log.Printf("Error processing message: %v", err)
 		return err
 	}
 	return nil
@@ -110,7 +110,7 @@ func ProcessMessage(event NotificationEvent) error {
 
 		}
 		if err != nil {
-			log.Println("Error occured %v", err)
+			log.Printf("Error occurred: %v", err)
 			return err
 		}
 
@@ -138,7 +138,7 @@ func SendEmailSMTP(toEmail, smtpSender, subject, body string) error {
 		return fmt.Errorf("SMTP send mail failed: %w", err)
 	}
 
-	log.Println("Email triggered successfully to %s", toEmail)
+	log.Printf("Email triggered successfully to %s", toEmail)
 
 	return nil
 }
@@ -183,7 +183,7 @@ func getOauthToken() (*OauthTokenResponse, error) {
 		return &response, fmt.Errorf("Error Orccured %v", err)
 	}
 
-	log.Printf(string(body))
+	log.Printf("%s", string(body))
 
 	err = json.Unmarshal(body, &response)
 

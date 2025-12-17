@@ -35,7 +35,7 @@ func main() {
 	client, err := azservicebus.NewClientFromConnectionString(connectionstring, nil)
 
 	if err != nil {
-		log.Fatal("Failed to create service bus client %v", err)
+		log.Fatalf("Failed to create service bus client: %v", err)
 	}
 
 	defer client.Close(context.Background())
@@ -44,7 +44,7 @@ func main() {
 		ReceiveMode: azservicebus.ReceiveModePeekLock})
 
 	if err != nil {
-		log.Fatalf("Failed to create receiver for queue %s:%v", queueName, nil)
+		log.Fatalf("Failed to create receiver for queue %s: %v", queueName, err)
 	}
 
 	defer receiver.Close(context.Background())
@@ -74,7 +74,7 @@ func main() {
 		err = notifier.MessageUnmarshal([]byte(msg.Body))
 
 		if err != nil {
-			log.Fatal("error occured %v", err)
+			log.Fatalf("error occurred: %v", err)
 		}
 
 		err = receiver.CompleteMessage(context.Background(), msg, nil)
