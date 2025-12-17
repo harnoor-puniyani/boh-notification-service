@@ -26,7 +26,7 @@ stages:
         - task: Go@0
           inputs:
             command: 'test'
-            arguments: '-vet=off -profilecover=processor.out ./processor'
+            arguments: '-vet=off -coverprofile=processor.out ./processor'
 
         - script: |
             go tool cover -html=processor.out -o processor.html
