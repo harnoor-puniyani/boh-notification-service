@@ -31,6 +31,10 @@ stages:
         - script: |
             go tool cover -html=processor.out -o processor.html
 
+        - task: PublishCodeCoverageResults@2
+          inputs:
+            summaryFileLocation: '**/processor.html'
+            
             
       - job: staticCodeAnalysis
         displayName: Static code Analysis
