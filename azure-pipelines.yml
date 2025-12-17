@@ -26,7 +26,11 @@ stages:
         - task: Go@0
           inputs:
             command: 'test'
-            arguments: '-vet=off'
+            arguments: './processor -vet=off -profilecover=processor.out'
+
+        - script: |
+            go tool cover -html=processor.out -o processor.html
+
             
       - job: staticCodeAnalysis
         displayName: Static code Analysis
