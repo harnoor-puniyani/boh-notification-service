@@ -20,22 +20,27 @@ stages:
     jobs:
       - job: UnitTest
         steps:
-        - task: GoTool@0
-          inputs:
-            version: '1.23'
-        - task: Go@0
-          inputs:
-            command: 'test'
-            arguments: '-vet=off -coverprofile=processor.out ./processor'
+        # - task: GoTool@0
+        #   inputs:
+        #     version: '1.23'
+        # - task: Go@0
+        #   inputs:
+        #     command: 'test'
+        #     arguments: '-vet=off -coverprofile=processor.out ./processor'
 
-        - script: |
-            go tool cover -html=processor.out -o processor.html
+        # - script: |
+        #     go tool cover -html=processor.out -o processor.html
 
-        - task: PublishCodeCoverageResults@2
-          inputs:
-            summaryFileLocation: '**/processor.html'
+        # - task: PublishCodeCoverageResults@2
+        #   inputs:
+        #     summaryFileLocation: '**/processor.html'
             
-            
+        - template: Go-unit-Test.yaml@templates
+          parameters:
+            modules:
+              - processor
+              - notifier
+                     
       - job: staticCodeAnalysis
         displayName: Static code Analysis
         steps:
