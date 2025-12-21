@@ -20,28 +20,12 @@ stages:
     jobs:
       - job: UnitTest
         steps:
-        # - task: GoTool@0
-        #   inputs:
-        #     version: '1.23'
-        # - task: Go@0
-        #   inputs:
-        #     command: 'test'
-        #     arguments: '-vet=off -coverprofile=processor.out ./processor'
-
-        # - script: |
-        #     go tool cover -html=processor.out -o processor.html
-
-        # - task: PublishCodeCoverageResults@2
-        #   inputs:
-        #     summaryFileLocation: '**/processor.html'
-            
         - template: Go-unit-Test.yaml@templates
           parameters:
             modules:
               - 'processor'
               - 'notifier'
-
-              
+      
       - job: staticCodeAnalysis
         displayName: Static code Analysis
         dependsOn: UnitTest
@@ -51,58 +35,11 @@ stages:
              org: $(sonarqube-cloud-organisation-key)
              projectKey: arzom-test_boh
 
-          # - checkout: self
-          #   fetchDepth: 0
-
-          # - task: SonarCloudPrepare@3
-          #   enabled: true
-          #   inputs:
-          #     organization: $(sonarqube-cloud-organisation-key)
-          #     scannerMode: cli
-          #     projectKey: arzom-test_boh
-          #     configMode: manual
-          #     projectName: boh
-          #     cliProjectKey: arzom-test_boh
-          #     SonarQube: sonar qube cloud service connection
-          #     extraProperties: |
-          #       sonar.projectKey=arzom-test_boh
-          #       sonar.organization=arzom-test
-
-          # - task: SonarCloudAnalyze@3
-          #   inputs:
-          #     jdkversion: 'JAVA_HOME_21_X64'
-        
-          # - task: SonarCloudPublish@3
-          #   inputs:
-          #     pollingTimeoutSec: '300'
-      
       - job: repoScan
         displayName: repositoryScan
         dependsOn: staticCodeAnalysis
         steps:
           - template: trivy-repo-scan.yaml@templates
-          
-          # - checkout: self
-          #   fetchDepth: 0
-
-          # - script: |
-          #     docker run --rm \
-          #     -v $(System.DefaultWorkingDirectory):/src \
-          #     aquasec/trivy repo /src \
-          #     --scanners vuln,secret,misconfig,license \
-          #     --format sarif \
-          #     --output /src/report.sarif
-          #   displayName: repository scan
-          #   enabled: true
-          
-          # - task: PublishBuildArtifacts@1
-          #   displayName: Publish Repository scan
-          #   enabled: true
-          #   inputs:
-          #     ArtifactName: CodeAnalysisLogs
-          #     publishLocation: Container
-          #     PathtoPublish: $(System.DefaultWorkingDirectory)/report.sarif
-
 
       - job: dockerBuild
         displayName: docker image build
@@ -115,36 +52,7 @@ stages:
               directory: .
               dockerRegistry: docker-harnoorpuniyani
           
-          #image scaning
-          - script: |
-              docker run --rm \
-              -v /var/run/docker.sock:/var/run/docker.sock \
-              -v $(System.DefaultWorkingDirectory):/output \
-              aquasec/trivy image \
-              --format sarif \
-              --output /output/report.sarif \
-              harnoorpuniyani/boh-notification-service:v0
-            displayName: 'Run Trivy Security Scan'
-            continueOnError: true
-          - task: PublishTestResults@2
-            enabled: false
-            inputs:
-              testResultsFormat: 'JUnit'
-              testResultsFiles: '$(System.DefaultWorkingDirectory)/**/*.xml'
-              mergeTestResults: true
-
-          - task: PublishBuildArtifacts@1
-            displayName: publish image scanning results
-            enabled: true
-            inputs:
-              ArtifactName: CodeAnalysisLogs 
-              publishLocation: Container
-              PathtoPublish: $(System.DefaultWorkingDirectory)/report.sarif
-
-          - script: |
-              docker save harnoorpuniyani/boh-notification-service:v0 > boh-notification-service-$(Build.BuildNumber).tar
-          
-          - task: PublishBuildArtifacts@1
-            inputs:
-              ArtifactName: boh-notification-service
-              PathtoPublish: boh-notification-service-$(Build.BuildNumber).tar
+          - template: trivy-image-scan.yaml@templates
+            parameters:
+              imageName: harnoorpuniyani/boh-notification-service
+              imageTag: v0
