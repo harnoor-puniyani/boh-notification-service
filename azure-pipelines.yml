@@ -38,61 +38,70 @@ stages:
         - template: Go-unit-Test.yaml@templates
           parameters:
             modules:
-              - processor
-              - notifier
-                     
+              - 'processor'
+              - 'notifier'
+
+              
       - job: staticCodeAnalysis
         displayName: Static code Analysis
+        dependsOn: UnitTest
         steps:
-          - checkout: self
-            fetchDepth: 0
+         - template: static-code-analysis-sonarqube.yaml@templates
+           parameters:
+             org: $(sonarqube-cloud-organisation-key)
+             projectKey: arzom-test_boh
 
-          - task: SonarCloudPrepare@3
-            enabled: true
-            inputs:
-              organization: $(sonarqube-cloud-organisation-key)
-              scannerMode: cli
-              projectKey: arzom-test_boh
-              configMode: manual
-              projectName: boh
-              cliProjectKey: arzom-test_boh
-              SonarQube: sonar qube cloud service connection
-              extraProperties: |
-                sonar.projectKey=arzom-test_boh
-                sonar.organization=arzom-test
+          # - checkout: self
+          #   fetchDepth: 0
 
-          - task: SonarCloudAnalyze@3
-            inputs:
-              jdkversion: 'JAVA_HOME_21_X64'
+          # - task: SonarCloudPrepare@3
+          #   enabled: true
+          #   inputs:
+          #     organization: $(sonarqube-cloud-organisation-key)
+          #     scannerMode: cli
+          #     projectKey: arzom-test_boh
+          #     configMode: manual
+          #     projectName: boh
+          #     cliProjectKey: arzom-test_boh
+          #     SonarQube: sonar qube cloud service connection
+          #     extraProperties: |
+          #       sonar.projectKey=arzom-test_boh
+          #       sonar.organization=arzom-test
+
+          # - task: SonarCloudAnalyze@3
+          #   inputs:
+          #     jdkversion: 'JAVA_HOME_21_X64'
         
-          - task: SonarCloudPublish@3
-            inputs:
-              pollingTimeoutSec: '300'
+          # - task: SonarCloudPublish@3
+          #   inputs:
+          #     pollingTimeoutSec: '300'
       
       - job: repoScan
         displayName: repositoryScan
         dependsOn: staticCodeAnalysis
         steps:
-          - checkout: self
-            fetchDepth: 0
-
-          - script: |
-              docker run --rm \
-              -v $(System.DefaultWorkingDirectory):/src \
-              aquasec/trivy repo /src \
-              --scanners vuln,secret,misconfig,license \
-              --format sarif \
-              --output /src/report.sarif
-            displayName: repository scan
-            enabled: true
+          - template: trivy-repo-scan.yaml@templates
           
-          - task: PublishBuildArtifacts@1
-            displayName: Publish Repository scan
-            enabled: true
-            inputs:
-              ArtifactName: CodeAnalysisLogs
-              publishLocation: Container
-              PathtoPublish: $(System.DefaultWorkingDirectory)/report.sarif
+          # - checkout: self
+          #   fetchDepth: 0
+
+          # - script: |
+          #     docker run --rm \
+          #     -v $(System.DefaultWorkingDirectory):/src \
+          #     aquasec/trivy repo /src \
+          #     --scanners vuln,secret,misconfig,license \
+          #     --format sarif \
+          #     --output /src/report.sarif
+          #   displayName: repository scan
+          #   enabled: true
+          
+          # - task: PublishBuildArtifacts@1
+          #   displayName: Publish Repository scan
+          #   enabled: true
+          #   inputs:
+          #     ArtifactName: CodeAnalysisLogs
+          #     publishLocation: Container
+          #     PathtoPublish: $(System.DefaultWorkingDirectory)/report.sarif
 
 
       - job: dockerBuild
